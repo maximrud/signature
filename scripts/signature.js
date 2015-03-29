@@ -403,6 +403,38 @@
         };
     }
 
+    // Определить, является ли последняя проведенная линия перечеркивающей
+    function checkCrossOut(stroke) {
+        // Должно быть по крайней мере две линии
+        if (stroke.length < 2)
+            return false;
+
+        var line = stroke[stroke.length - 1], n = line.length;
+        // Координаты X и Y линии не меняют знак
+        if (n > 2) {
+            var cx = line[0].x - line[1].x, cy = line[0].y - line[1].y;
+            for (var i = 2; i < n; i++) {
+                var dx = line[i - 1].x - line[i].x, dy = line[i - 1].y - line[i].y;
+                if ((cx > 0 && dx < 0) || (cx < 0 && dx > 0) ||
+                        (cy > 0 && dy < 0) || (cy < 0 && dy > 0))
+                    return false;
+            }
+        }
+
+        // Граничные координты X линии максимальны и минимальны на всем изображении
+        var max = Math.max(line[0].x, line[n - 1].x),
+                min = Math.min(line[0].x, line[n - 1].x);
+        for (var i = 0; i < stroke.length - 1; i++) {
+            var a = stroke[i];
+            for (var j = 0; j < a.length; j++) {
+                if (max < a[j].x || min > a[j].x)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
     function extend(obj) {
         for (var i = 1, n = arguments.length; i < n; i++) {
             var ext = arguments[i];
@@ -411,21 +443,45 @@
         }
     }
 
+    function getStyle(element, styleProp) {
+        if (element.currentStyle)
+            return element.currentStyle[styleProp];
+        else if (window.getComputedStyle)
+            return  document.defaultView.getComputedStyle(element, null).getPropertyValue(styleProp);
+    }
+
+    function offsetPosition(element) {
+        var offsetLeft = 0, offsetTop = 0;
+        do {
+            offsetLeft += element.offsetLeft;
+            offsetTop += element.offsetTop;
+        } while (element = element.offsetParent);
+        return {offsetLeft: offsetLeft, offsetTop: offsetTop};
+    }
+
+
     function Signature(element, options) {
 
-        var stroke = [], startTime, curLine, lastPoint, ctx, canvas;
+        var stroke = [], startTime, curLine, lastPoint, ctx, canvas, 
+                changeTimer, self = this;
         options = options || {};
 
         function resize() {
             canvas.width = element.clientWidth;
             canvas.height = element.clientHeight;
-            // Инициализировать контеск
+            // Инициализировать контекст
             ctx = canvas.getContext('2d');
-            ctx.strokeStyle = options.color || '#000000'; // Colour of the signature 
+            ctx.strokeStyle = options.color || getStyle(element, 'color') || '#000000'; // Colour of the signature 
             ctx.lineWidth = options.thickness || 2; // Thickness of the stroke
             ctx.lineCap = 'Math.round';
             ctx.lineJoin = 'Math.round';
             redraw();
+        }
+
+        function change() {
+            if ('value' in element)
+                element.value = compress(stroke);
+            options.change && options.change.apply(self);
         }
 
         function stop(event) {
@@ -442,27 +498,32 @@
                 ctx.lineTo(lastPoint.x + 1, lastPoint.y + 1);
                 ctx.stroke();
             }
+            // Стереть подпись, если зачеркнули
+            if (checkCrossOut(stroke))
+                clear();
+            else // Таймуат изменения
+                changeTimer = setTimeout(change, 1000);
             // Остановить обработку этого события
-            if (event.target.id === canvas) {
+            if (event && event.target.id === canvas) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
             }
         }
 
         function move(event) {
-            if (event.target === canvas) {
+            if (event && event.target === canvas) {
                 // Определить координаты точки
-                var point;
+                var point, pos = offsetPosition(event.target);
                 if (event.touches) {
                     point = {
-                        x: Math.round(event.touches[0].pageX - event.target.offsetLeft),
-                        y: Math.round(event.touches[0].pageY - event.target.offsetTop),
+                        x: event.touches[0].pageX - pos.offsetLeft,
+                        y: event.touches[0].pageY - pos.offsetTop,
                         t: now() - startTime
                     };
                 } else {
                     point = {
-                        x: Math.round(event.offsetX),
-                        y: Math.round(event.offsetY),
+                        x: event.offsetX,
+                        y: event.offsetY,
                         t: now() - startTime
                     };
                 }
@@ -485,19 +546,20 @@
         }
 
         function start(event) {
-            if (event.target === canvas) {
+            if (event && event.target === canvas) {
                 // Определить координаты первой точки
                 startTime = now();
+                var pos = offsetPosition(event.target);
                 if (event.touches) {
                     lastPoint = {
-                        x: Math.round(event.touches[0].pageX - event.target.offsetLeft),
-                        y: Math.round(event.touches[0].pageY - event.target.offsetTop),
+                        x: event.touches[0].pageX - pos.offsetLeft,
+                        y: event.touches[0].pageY - pos.offsetTop,
                         t: 0
                     };
                 } else {
                     lastPoint = {
-                        x: Math.round(event.offsetX),
-                        y: Math.round(event.offsetY),
+                        x: event.offsetX,
+                        y: event.offsetY,
                         t: 0
                     };
                 }
@@ -507,6 +569,7 @@
                 // Остановить обработку этого события
                 event.preventDefault();
                 event.stopImmediatePropagation();
+                clearTimeout(changeTimer);
                 // Включить обработчики событий
                 document.addEventListener('mouseup', stop, false);
                 document.addEventListener('touchend', stop, false);
@@ -521,6 +584,7 @@
             if (ctx) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 stroke = [];
+                change();
             }
         }
 
@@ -576,7 +640,7 @@
         document.addEventListener('mousedown', start, false);
         document.addEventListener('touchstart', start, false);
 
-        extend(this, {
+        extend(self, {
             // Очистить подпись
             clear: clear,
             // Сравнить подпись с эталоном
@@ -584,22 +648,32 @@
                 var stroke2;
                 if (etalon.stroke)
                     stroke2 = etalon.stroke;
-                else 
+                else
                     stroke2 = decompress(etalon);
                 return compare(stroke, stroke2);
             },
-            // Перерисовать подпись 
-            redraw: redraw,
+            // Получить элемент
+            getElement: function () {
+                return element;
+            },
             // Загрузить из Base64
             fromBase64: function (s) {
                 stroke = decompress(s);
                 redraw();
+                change();
             },
             // Загрузить из JSON
             fromJSON: function (s) {
                 stroke = JSON.parse(s).stroke;
                 redraw();
+                change();
             },
+            // Подпись отсутствует
+            isEmpty: function () {
+                return stroke.length === 0;
+            },
+            // Перерисовать подпись 
+            redraw: redraw,
             // Удалить подпись
             remove: remove,
             // Преобразовать в Base64
