@@ -2,37 +2,183 @@
 <html>
     <head>
         <title>Signature example</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">      
         <style>
+            body {
+                overflow-scrolling: touch;
+                -ms-overflow-style: -ms-autohiding-scrollbar;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            * {
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+                -webkit-touch-callout: none;
+            }
+
+            @-ms-viewport { 
+                min-zoom: 1; 
+                max-zoom: 1; 
+                user-zoom: fixed; 
+            }            
+            
+            body {
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#f6f6f6), to(#eae8e8)); 
+                background-image: -webkit-linear-gradient(top, #f6f6f6, #eae8e8);
+                background-image: -moz-linear-gradient(top, #f6f6f6, #eae8e8);
+                background-image: -ms-linear-gradient(top, #f6f6f6, #eae8e8);
+                background-image: -o-linear-gradient(top, #f6f6f6, #eae8e8);
+                background-image: linear-gradient(top, #f6f6f6, #eae8e8);
+                padding: 0px 20px;
+                font: 14px 'lucida sans', 'trebuchet MS', 'Tahoma';
+                color: #777;
+            }
+            .box {
+                background: #fff;
+                border: 1px solid #ccc;
+                -moz-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                -webkit-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                -moz-border-radius: 3px;
+                -webkit-border-radius: 3px;
+                border-radius: 3px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+            }
+            .box:focus, .box:hover {
+                outline: 0; 
+                border-color: #aaa;
+                -moz-box-shadow: 0 1px 1px #bbb inset;
+                -webkit-box-shadow: 0 1px 1px #bbb inset;
+                box-shadow: 0 1px 1px #bbb inset;  
+            }
+
             #signature, #signatureSaved {
                 width: 100%;
                 height: 300px;
-                background: floralwhite;
-                border: solid black 1px;
                 box-sizing: border-box;
+                color: #1c008a;
+                position: relative;
+                transition: background 0.3s;
+            }
+            #signature {
+                -ms-touch-action: none;
             }
             #signatureJson, #signatureSVG, #signatureBASE64 {
                 width: 100%;
                 height: 100px;
-                background: aliceblue;
-                border: solid black 1px;
                 padding: 10px;
                 box-sizing: border-box;
                 overflow: auto;
                 font-family: monospace;
                 font-size: 12px;
+                color: #444;
             }
             #signatureSVG {
                 white-space: pre-wrap;
             }
-            alert {
-                background: lightcoral;
+
+            button {
+                border: 1px solid #00748f;
+                height: 42px;
+                width: 120px;
+                padding: 0;
+                outline: none;
+                cursor: pointer;
+                font-size: 15px;
+                font-weight: bold;
+                color: #fafafa;
+                text-transform: uppercase;    
+                background-color: #0483a0;
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#31b2c3), to(#0483a0));
+                background-image: -webkit-linear-gradient(top, #31b2c3, #0483a0);
+                background-image: -moz-linear-gradient(top, #31b2c3, #0483a0);
+                background-image: -ms-linear-gradient(top, #31b2c3, #0483a0);
+                background-image: -o-linear-gradient(top, #31b2c3, #0483a0);
+                background-image: linear-gradient(top, #31b2c3, #0483a0);
+                -moz-border-radius: 3px;
+                -webkit-border-radius: 3px;
+                border-radius: 3px;      
+                text-shadow: 0 1px 0 rgba(0, 0 ,0, .3);
+                -moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 0 #fff;
+                -webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 0 #fff;
+                box-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 1px 0 #fff;
+                margin-bottom: 10px;
+            }
+
+            button:hover {		
+                background-color: #31b2c3;
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#0483a0), to(#31b2c3));
+                background-image: -webkit-linear-gradient(top, #0483a0, #31b2c3);
+                background-image: -moz-linear-gradient(top, #0483a0, #31b2c3);
+                background-image: -ms-linear-gradient(top, #0483a0, #31b2c3);
+                background-image: -o-linear-gradient(top, #0483a0, #31b2c3);
+                background-image: linear-gradient(top, #0483a0, #31b2c3);
+            }	
+
+            button:active {
+                outline: 0;    
+                -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+                -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5) inset;    
+            }
+
+            button::-moz-focus-inner {
+                border: 0;
+            }
+
+            input {
+                width: 223px;
+                height: 20px;
+                padding: 10px 10px;
+                outline: none; 
+                font: bold 16px 'lucida sans', 'trebuchet MS', 'Tahoma';
+                border: 1px solid #ccc;
+                -moz-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                -webkit-box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                box-shadow: 0 1px 1px #ddd inset, 0 1px 0 #fff;
+                -moz-border-radius: 3px;
+                -webkit-border-radius: 3px;
+                border-radius: 3px;      
+            }
+
+            input:focus {
+                border-color: #aaa;
+                -moz-box-shadow: 0 1px 1px #bbb inset;
+                -webkit-box-shadow: 0 1px 1px #bbb inset;
+                box-shadow: 0 1px 1px #bbb inset;  
+            }
+
+            .tooltip {
+                opacity: 0;
+                visibility: hidden;
+                padding-bottom: 20px;
+                padding-left: 20px;
+                padding-right: 20px;
+                padding-top: 20px;
+                position: absolute;
+            }
+
+            #signature.different, #correlation.different {
+                background: #FE8FC1;
+                transition: background 0.5s;
+            }
+
+            #signature.similar, #correlation.similar {
+                background:  #FEE18F;
+                transition: background 0.5s;
+            }
+
+            #signature.identical, #correlation.identical {
+                background:  #A8FE8F;
+                transition: background 0.5s;
             }
         </style>
         <script src="scripts/signature.js"></script>
         <script>
-            var signature;
+            var signature, savedSignature, savedImageData;
 
             function empty() {
                 signature.clear();
@@ -41,49 +187,58 @@
             function save() {
                 var saved = document.getElementById('signatureSaved'),
                         list = saved.getElementsByTagName('canvas'),
-                        canvas, ctx;
-
+                        canvas;
+                
+                savedImageData = signature.toImageData();
+                savedSignature = signature.toBase64();
                 if (!list || list.length === 0) {
                     canvas = document.createElement('canvas');
-                    ctx = canvas.getContext('2d');
                     saved.appendChild(canvas);
                     canvas.width = saved.clientWidth;
                     canvas.height = saved.clientHeight;
                     window.addEventListener('resize', function () {
-                        var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
                         canvas.width = saved.clientWidth;
                         canvas.height = saved.clientHeight;
-                        ctx.putImageData(data, 0, 0);
+                        canvas.getContext('2d').putImageData(savedImageData, 0, 0);
                     });
                 } else
                     canvas = list[0];
 
-                canvas.getContext('2d').putImageData(signature.toImageData(), 0, 0);
-                document.getElementById('signatureBASE64').textContent = 'image/signature;base64,' + signature.toBase64();
+                canvas.getContext('2d').putImageData(savedImageData, 0, 0);
+                document.getElementById('signatureBASE64').textContent = 'image/signature;base64,' + savedSignature;
                 document.getElementById('signatureJson').textContent = signature.toJSON();
                 document.getElementById('signatureSVG').textContent = signature.toSVG();
             }
 
             function load() {
-                // signature.fromJSON(document.getElementById('signatureJson').textContent);
-                var sa = document.getElementById('signatureBASE64').textContent.split(',');
-                signature.fromBase64(sa[sa.length - 1]);
+                signature.fromBase64(savedSignature);
             }
 
             function compare() {
-                var etalon = JSON.parse(document.getElementById('signatureJson').textContent);
-                var cor = signature.compare(etalon);
-                var c = Math.min(cor.x, cor.y), comparison = 'Different';
+                if (signature.isEmpty() || !savedSignature) {
+                    document.getElementById('correlation').value = '';
+                    document.getElementById('correlation').removeAttribute('class');
+                    return;
+                }
+                var cor = signature.compare(savedSignature);
+                var c = Math.min(cor.x, cor.y), comparison = 'different';
                 if (c > 0.9)
-                    comparison = 'Identical';
+                    comparison = 'identical';
                 else if (c > 0.6)
-                    comparison = 'Similar';
-                
-                document.getElementById('correlation').value = comparison + ' (' + Math.round(cor.x * 100) + '%, ' + Math.round(cor.y * 100) + '%)';
+                    comparison = 'similar';
+
+                document.getElementById('correlation').value = comparison.substr(0, 1).toUpperCase() + comparison.substr(1) + ' (' + Math.round(cor.x * 100) + '%, ' + Math.round(cor.y * 100) + '%)';
+                document.getElementById('correlation').setAttribute('class', comparison);
+                document.getElementById('signature').setAttribute('class', 'box ' + comparison);
+                setTimeout(function () {
+                    document.getElementById('signature').setAttribute('class', 'box');
+                }, 500);
             }
 
             function init() {
-                signature = new Signature(document.getElementById('signature'));
+                signature = new Signature(document.getElementById('signature'), {
+                    change: compare
+                });
             }
 
         </script>
@@ -91,7 +246,7 @@
     <body onload="init()">
         <h1>Signature example</h1>
         <div>Input Signature</div>
-        <div id="signature"></div>
+        <div class="box" id="signature"></div>
         <p>
             <button onclick="save();">Save</button>
             <button onclick="load();">Load</button>
@@ -100,15 +255,15 @@
             <input id="correlation" readonly/>
         <p>
         <div>Saved Signature </div>
-        <div id="signatureSaved"></div>
+        <div class="box" id="signatureSaved"></div>
         <p>
         <div>Saved Signature BASE64</div>
-        <div id="signatureBASE64" contenteditable></div>
+        <div class="box" id="signatureBASE64" contenteditable></div>
         <p>
         <div>Saved Signature JSON</div>
-        <div id="signatureJson" contenteditable></div>
+        <div class="box" id="signatureJson" contenteditable></div>
         <p>
         <div>Saved Signature SVG</div>
-        <div id="signatureSVG" contenteditable></div>
+        <div class="box" id="signatureSVG" contenteditable></div>
     </body>
 </html>
