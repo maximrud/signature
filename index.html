@@ -23,7 +23,7 @@
                 max-zoom: 1; 
                 user-zoom: fixed; 
             }            
-            
+
             body {
                 background-image: -webkit-gradient(linear, left top, left bottom, from(#f6f6f6), to(#eae8e8)); 
                 background-image: -webkit-linear-gradient(top, #f6f6f6, #eae8e8);
@@ -178,7 +178,32 @@
         </style>
         <script src="scripts/signature.js"></script>
         <script>
-            var signature, savedSignature, savedImageData;
+            var signature, savedSignature, savedImageData, savedServer;
+
+            function send(action, value, success, error) {
+                var params = action + '=' + encodeURIComponent(value);
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'signature', true);
+                xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState !== 4)
+                        return;
+                    if (xhr.status !== 200) {
+                        console.log('Error ' + this.status);
+                        error & error.call(xhr);
+                        return;
+                    }
+                    try {
+                        var value = JSON.parse(xhr.responseText);
+                        console.log(value.result || 'No result');
+                        success & success.call(xhr, value);
+                    } catch (e) {
+                        console.log('JSON parser error');
+                        error & error.call(xhr);
+                    }
+                };
+                xhr.send(params);
+            }
 
             function empty() {
                 signature.clear();
@@ -188,7 +213,7 @@
                 var saved = document.getElementById('signatureSaved'),
                         list = saved.getElementsByTagName('canvas'),
                         canvas;
-                
+
                 savedImageData = signature.toImageData();
                 savedSignature = signature.toBase64();
                 if (!list || list.length === 0) {
@@ -208,10 +233,32 @@
                 document.getElementById('signatureBASE64').textContent = 'image/signature;base64,' + savedSignature;
                 document.getElementById('signatureJson').textContent = signature.toJSON();
                 document.getElementById('signatureSVG').textContent = signature.toSVG();
+
+                send('save', savedSignature, function () {
+                    savedServer = true;
+                }, function () {
+                    savedServer = false;
+                });
             }
 
             function load() {
                 signature.fromBase64(savedSignature);
+            }
+
+            function showResult(result) {
+                var c = Math.min(result.x, result.y), comparison = 'different';
+                if (c > 0.9)
+                    comparison = 'identical';
+                else if (c > 0.6)
+                    comparison = 'similar';
+
+                document.getElementById('correlation').value = comparison.substr(0, 1).toUpperCase() + comparison.substr(1) + 
+                        ' (' + Math.round(result.x * 100) + '%, ' + Math.round(result.y * 100) + '%)';
+                document.getElementById('correlation').setAttribute('class', comparison);
+                document.getElementById('signature').setAttribute('class', 'box ' + comparison);
+                setTimeout(function () {
+                    document.getElementById('signature').setAttribute('class', 'box');
+                }, 500);
             }
 
             function compare() {
@@ -220,19 +267,17 @@
                     document.getElementById('correlation').removeAttribute('class');
                     return;
                 }
-                var cor = signature.compare(savedSignature);
-                var c = Math.min(cor.x, cor.y), comparison = 'different';
-                if (c > 0.9)
-                    comparison = 'identical';
-                else if (c > 0.6)
-                    comparison = 'similar';
 
-                document.getElementById('correlation').value = comparison.substr(0, 1).toUpperCase() + comparison.substr(1) + ' (' + Math.round(cor.x * 100) + '%, ' + Math.round(cor.y * 100) + '%)';
-                document.getElementById('correlation').setAttribute('class', comparison);
-                document.getElementById('signature').setAttribute('class', 'box ' + comparison);
-                setTimeout(function () {
-                    document.getElementById('signature').setAttribute('class', 'box');
-                }, 500);
+                if (savedServer) {
+                    send('verify', signature.toBase64(), function (result) {
+                        showResult(result);
+                    }, function () {
+                        savedServer = false;
+                        showResult(signature.compare(savedSignature));
+                    });
+                } else {
+                    showResult(signature.compare(savedSignature));
+                }
             }
 
             function init() {
