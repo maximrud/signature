@@ -28,9 +28,9 @@
         var n = Math.min(x.length, y.length);
 
         // Инициализация массива сплайнов
-        var sp1ines = [];
+        var splines = [];
         for (var i = 0; i < n; ++i)
-            sp1ines[i] = {x: x[i], a: y[i], b: 0, c: 0, d: 0};
+            splines[i] = {x: x[i], a: y[i], b: 0, c: 0, d: 0};
 
         // Решение СЛАУ относительно коэффициентов сплайнов c[i] методом прогонки для трехдиагональных матриц
         // Вычисление прогоночных коэффициентов - прямой ход метода прогонки
@@ -50,42 +50,42 @@
 
         // Нахождение решения - обратный ход метода прогонки
         for (var i = n - 2; i > 0; --i) {
-            sp1ines[i].c = alpha[i] * sp1ines[i + 1].c + beta[i];
+            splines[i].c = alpha[i] * splines[i + 1].c + beta[i];
         }
 
         // По известным коэффициентам c[i] находим значения b[i] и d[i]
         for (var i = n - 1; i > 0; --i) {
             var hi = x[i] - x[i - 1];
-            sp1ines[i].d = (sp1ines[i].c - sp1ines[i - 1].c) / hi;
-            sp1ines[i].b = hi * (2 * sp1ines[i].c + sp1ines[i - 1].c) / 6 + (y[i] - y[i - 1]) / hi;
+            splines[i].d = (splines[i].c - splines[i - 1].c) / hi;
+            splines[i].b = hi * (2 * splines[i].c + splines[i - 1].c) / 6 + (y[i] - y[i - 1]) / hi;
         }
-        return sp1ines;
+        return splines;
     }
 
     // Вычисление значения интерполированной функции в произвольной точке
-    function interpolate(sp1ines, x) {
+    function interpolate(splines, x) {
 
-        var n = sp1ines.length, s = {};
+        var n = splines.length, s = {};
 
         // Если x меньше точки сетки x[0] - пользуемся первым эл-тов массива
-        if (x <= sp1ines[0].x) {
-            s = sp1ines[0];
+        if (x <= splines[0].x) {
+            s = splines[0];
             // Если x больше точки сетки x[n - 1] - пользуемся последним эл-том массива
-        } else if (x >= sp1ines[n - 1].x) {
-            s = sp1ines[n - 1];
+        } else if (x >= splines[n - 1].x) {
+            s = splines[n - 1];
             // Иначе x лежит между граничными точками сетки - производим бинарный поиск нужного эл-та массива
         } else {
             var i = 0;
             var j = n - 1;
             while (i + 1 < j) {
                 var k = i + Math.floor((j - i) / 2);
-                if (x <= sp1ines[k].x) {
+                if (x <= splines[k].x) {
                     j = k;
                 } else {
                     i = k;
                 }
             }
-            s = sp1ines[j];
+            s = splines[j];
         }
 
         var dx = x - s.x;
@@ -516,14 +516,14 @@
                 var point, pos = offsetPosition(event.target);
                 if (event.touches) {
                     point = {
-                        x: event.touches[0].pageX - pos.offsetLeft,
-                        y: event.touches[0].pageY - pos.offsetTop,
+                        x: Math.round(event.touches[0].pageX - pos.offsetLeft),
+                        y: Math.round(event.touches[0].pageY - pos.offsetTop),
                         t: now() - startTime
                     };
                 } else {
                     point = {
-                        x: event.offsetX,
-                        y: event.offsetY,
+                        x: Math.round(event.offsetX),
+                        y: Math.round(event.offsetY),
                         t: now() - startTime
                     };
                 }
@@ -552,14 +552,14 @@
                 var pos = offsetPosition(event.target);
                 if (event.touches) {
                     lastPoint = {
-                        x: event.touches[0].pageX - pos.offsetLeft,
-                        y: event.touches[0].pageY - pos.offsetTop,
+                        x: Math.round(event.touches[0].pageX - pos.offsetLeft),
+                        y: Math.round(event.touches[0].pageY - pos.offsetTop),
                         t: 0
                     };
                 } else {
                     lastPoint = {
-                        x: event.offsetX,
-                        y: event.offsetY,
+                        x: Math.round(event.offsetX),
+                        y: Math.round(event.offsetY),
                         t: 0
                     };
                 }
