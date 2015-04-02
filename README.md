@@ -1,6 +1,8 @@
 # signature
-Pen Signature verification algorithm
+Pen Signature verification algorithm.
 Maxim Ryabochkin, 2015 
+
+Demo http://maximrud.github.io/signature/
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
